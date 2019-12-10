@@ -86,8 +86,9 @@ router.post('/requestAddTeam', (request, response, next) => {
 })
 
 router.post('/getNotification', (request, response, next) => {
+    // const solved = 0;
     const { id_receiver } = request.body;
-    const queryGetNoti = `SELECT * FROM record WHERE id_receiver='${id_receiver}'`;
+    const queryGetNoti = `SELECT * FROM record WHERE id_receiver='${id_receiver}' AND solved=0`;
     pool.query(queryGetNoti, (error, results) => {
         if (error) throw error;
         else {
@@ -97,17 +98,44 @@ router.post('/getNotification', (request, response, next) => {
 })
 
 router.post('/addToTeam', (request, response, next) => {
-    const { id_sender, id_team, type, answer } = request.body;
-    const queryAddToTeam = `UPDATE player SET team_id='${id_team}' WHERE id='${id_sender}'`;
+    // const solved = 1;
+    const { id_record, id_sender, id_team, type, answer } = request.body;
+    const queryAddToTeam = `UPDATE player SET team_id='${id_team}', captain=0 WHERE id='${id_sender}'`;
     if (answer === 1) {
         pool.query(queryAddToTeam, (error, results) => {
             if (error) throw error;
             else {
-                response.send(results);
+                response.json(results);
+                const queryUpdateRecord = `UPDATE record SET solved=1 WHERE id_record='${id_record}'`;
+                pool.query(queryUpdateRecord, (results, error) => {
+                    if (error) throw error;
+                    else {
+                    }
+                })
             }
         })
     }
 
+})
+
+router.post('/training', (request, response, next) => {
+    const { date_training, team_id, type } = request.body;
+    console.log(date_training, team_id)
+    const queryTraining = `INSERT INTO record (team_id, date_training, type_request) VALUES ('${team_id}','${date_training}','${type}') `;
+    pool.query(queryTraining, (results, error) => {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            console.log(results)
+            response.json(results)
+        }
+    })
+
+})
+
+router.post('/getTrainingDate', (request, response, next) => {
+    const { team_id } = request.body;
 })
 
 module.exports = router;
